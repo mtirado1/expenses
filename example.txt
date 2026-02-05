@@ -1,0 +1,13 @@
+
+Example expenses file
+
+2026-05-10    $100     Sold old sofa
+Lines that don't match the expense regexp will be ignored.
+
+Expenses can be entered as markdown lists
+- 2026-10-25 -$57.50   Halloween costume
+- 2026-12-10 -$223.34  Christmas gifts
+
+Multiple tags are allowed, the first one is the category:
+- 2026-12-15  +$800    #job Pay day
+- 2026-08-10  -$500    #car #repair Fixed the engine
