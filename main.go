@@ -34,7 +34,7 @@ func main() {
 	}
 
 	year, month, _ := time.Now().Date()
-	monthly := GetMonthlyExpenses(expenses, year, month)
+	monthly := GetMonthlyExpenses(expenses, year, month, 5)
 
 	fmt.Println(Bold("This month's expenses:"))
 	fmt.Printf("Gains:  %s\n", FormatAmount(monthly.gains, 10))
@@ -42,11 +42,18 @@ func main() {
 	fmt.Println()
 	fmt.Printf("Total:  %s\n", FormatAmount(monthly.gains-monthly.losses, 10))
 	fmt.Println()
-	if monthly.biggestGain != nil {
-		fmt.Printf("Biggest gain: %s (%s)\n", FormatAmount(monthly.biggestGain.Cost, 0), monthly.biggestGain.Description)
+
+	if len(monthly.topGains) > 0 {
+		fmt.Println("Top gains:")
+		for _, expense := range monthly.topGains {
+			fmt.Printf("  %20s (%s)\n", FormatAmount(expense.Cost, 0), expense.Description)
+		}
 	}
-	if monthly.biggestLoss != nil {
-		fmt.Printf("Biggest loss: %s (%s)\n", FormatAmount(monthly.biggestLoss.Cost, 0), monthly.biggestLoss.Description)
+	if len(monthly.topLosses) > 0 {
+		fmt.Println("Top expenses:")
+		for _, expense := range monthly.topLosses {
+			fmt.Printf("  %20s (%s)\n", FormatAmount(expense.Cost, 0), expense.Description)
+		}
 	}
 	fmt.Println()
 

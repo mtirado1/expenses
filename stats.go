@@ -10,8 +10,8 @@ type MonthlyExpenses struct {
 	month       time.Month
 	gains       Amount
 	losses      Amount
-	biggestGain *Expense
-	biggestLoss *Expense
+	topGains    []Expense
+	topLosses   []Expense
 }
 
 type YearlyExpenses struct {
@@ -57,33 +57,43 @@ func GetCategoryTotals(expenses []Expense) []CategoryTotal {
 	return totals
 }
 
-func GetMonthlyExpenses(expenses []Expense, year int, month time.Month) MonthlyExpenses {
+func GetMonthlyExpenses(expenses []Expense, year int, month time.Month, topN int) MonthlyExpenses {
 	gains := 0
 	losses := 0
-	var biggestGain, biggestLoss *Expense
+	var lossExpenses []Expense
+	var gainExpenses []Expense
 
 	filtered := FilterByMonth(expenses, year, month)
 
-	for i, expense := range filtered {
+	for _, expense := range filtered {
 		if expense.Cost < 0 {
 			losses += -int(expense.Cost)
-			if biggestLoss == nil || expense.Cost < biggestLoss.Cost {
-				biggestLoss = &filtered[i]
-			}
+			lossExpenses = append(lossExpenses, expense)
 		} else {
 			gains += int(expense.Cost)
-			if biggestGain == nil || expense.Cost > biggestGain.Cost {
-				biggestGain = &filtered[i]
-			}
+			gainExpenses = append(gainExpenses, expense)
 		}
+	}
+
+	slices.SortFunc(lossExpenses, func(a, b Expense) int {
+		return cmp.Compare(a.Cost, b.Cost)
+	})
+	slices.SortFunc(gainExpenses, func(a, b Expense) int {
+		return cmp.Compare(a.Cost, b.Cost)
+	})
+	if topN > 0 && len(lossExpenses) > topN {
+		lossExpenses = lossExpenses[:topN]
+	}
+	if topN > 0 && len(gainExpenses) > topN {
+		gainExpenses = gainExpenses[:topN]
 	}
 
 	return MonthlyExpenses{
 		month:       month,
 		gains:       Amount(gains),
 		losses:      Amount(losses),
-		biggestGain: biggestGain,
-		biggestLoss: biggestLoss,
+		topGains:    gainExpenses,
+		topLosses:   lossExpenses,
 	}
 }
 
@@ -92,7 +102,7 @@ func GetYearlyExpenses(expenses []Expense, year int) YearlyExpenses {
 	maxAmount := Amount(1)
 
 	for i := 1; i <= 12; i += 1 {
-		monthly := GetMonthlyExpenses(expenses, year, time.Month(i))
+		monthly := GetMonthlyExpenses(expenses, year, time.Month(i), 0)
 		if monthly.gains > maxAmount {
 			maxAmount = monthly.gains
 		}
